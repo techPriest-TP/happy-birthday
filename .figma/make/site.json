@@ -1,0 +1,11 @@
+{
+  "title": "A Little Universe Called You",
+  "description": "A personalized birthday experience for a loved one, combining shared memories, playful games, heartfelt letters, and a surprise gift in an interactive digital keepsake.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
