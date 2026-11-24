@@ -382,7 +382,7 @@ Forever your biggest fan.`,
   ],
   media: {
     backgroundMusic: "",
-    surpriseVideo: "/video/happy-birthday-harmony.mp4",
+    surpriseVideo: "/video/happy-birthday-harmony-web.mp4",
     surpriseAudio: "",
   },
   surpriseType: "video",

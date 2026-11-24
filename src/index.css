@@ -2027,9 +2027,11 @@ p {
 .compliment-toast {
   position: fixed;
   z-index: 75;
-  left: 50%;
+  right: 1rem;
+  left: 1rem;
   bottom: max(1.2rem, env(safe-area-inset-bottom));
   width: min(calc(100% - 2rem), 28rem);
+  margin-inline: auto;
   padding: 1.25rem 1.35rem;
   border: 1px solid rgba(216, 184, 120, 0.34);
   border-radius: 1.4rem;
@@ -2037,7 +2039,6 @@ p {
   background: rgba(45, 24, 45, 0.94);
   box-shadow: 0 24px 70px rgba(36, 21, 39, 0.34);
   backdrop-filter: blur(18px);
-  transform: translateX(-50%);
 }
 .compliment-toast > button {
   position: absolute;

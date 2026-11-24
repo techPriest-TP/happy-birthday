@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { Gift, Heart, Pause, Play, Sparkles, Star } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DecorativeSky, Eyebrow, PrimaryButton, Screen } from "../components/experience";
 import { pookieConfig as config } from "../data/pookie";
 import { playLoveCue } from "../utils/feedback";
@@ -42,7 +42,7 @@ function SurpriseContent({
           className="surprise-video"
           controls
           playsInline
-          preload="metadata"
+          preload="auto"
           src={video}
           onPlay={onPerformancePlay}
           onPause={onPerformanceStop}
@@ -104,6 +104,18 @@ export function FinalSurprise({
   const [open, setOpen] = useState(false);
   const hasVideo = config.surpriseType === "video" && Boolean(config.media.surpriseVideo);
   const [performanceComplete, setPerformanceComplete] = useState(!hasVideo);
+
+  useEffect(() => {
+    if (!hasVideo || !config.media.surpriseVideo) return;
+    const preloader = document.createElement("video");
+    preloader.preload = "auto";
+    preloader.src = config.media.surpriseVideo;
+    preloader.load();
+    return () => {
+      preloader.removeAttribute("src");
+      preloader.load();
+    };
+  }, [hasVideo]);
 
   return (
     <Screen className="final-screen">
