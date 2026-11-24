@@ -144,3 +144,10 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+
+# Vercel must receive the real public media files during its Git-based build.
+# These assets are comfortably below GitHub's per-file size limit, so keep them
+# as normal Git blobs instead of deploying Git LFS pointer files.
+public/images/**      -filter -diff -merge -text
+public/music/**       -filter -diff -merge -text
+public/video/**       -filter -diff -merge -text
