@@ -31,6 +31,7 @@ export default function LittleUniverse() {
   const [soundtrackStarted, setSoundtrackStarted] = useState(false);
   const [soundtrackMuted, setSoundtrackMuted] = useState(false);
   const [soundtrackUnavailable, setSoundtrackUnavailable] = useState(false);
+  const [soundtrackNeedsGesture, setSoundtrackNeedsGesture] = useState(false);
   const [performancePlaying, setPerformancePlaying] = useState(false);
   const [experienceStage, setExperienceStage] = useState<ExperienceStage>(() => {
     if (!config.birthdayEntrance.enabled) return "universe";
@@ -76,6 +77,39 @@ export default function LittleUniverse() {
     window.localStorage.setItem("little-universe-story-keepsakes", JSON.stringify(collectedKeepsakes));
   }, [collectedKeepsakes]);
 
+  useEffect(() => {
+    const resumeSoundtrack = async () => {
+      const player = soundtrackRef.current;
+      if (
+        document.visibilityState !== "visible" ||
+        !player ||
+        !soundtrackStarted ||
+        soundtrackMuted ||
+        performancePlaying ||
+        soundtrackUnavailable ||
+        !player.paused
+      ) {
+        return;
+      }
+
+      try {
+        await player.play();
+        setSoundtrackNeedsGesture(false);
+      } catch {
+        setSoundtrackNeedsGesture(true);
+      }
+    };
+
+    const handleVisibilityChange = () => void resumeSoundtrack();
+    const handlePageShow = () => void resumeSoundtrack();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [performancePlaying, soundtrackMuted, soundtrackStarted, soundtrackUnavailable]);
+
   const goTo = (value: number) => {
     setTransitionFrom(null);
     setChapter(value);
@@ -109,9 +143,10 @@ export default function LittleUniverse() {
       await player.play();
       setSoundtrackMuted(false);
       setSoundtrackUnavailable(false);
+      setSoundtrackNeedsGesture(false);
     } catch {
-      setSoundtrackUnavailable(true);
       setSoundtrackMuted(true);
+      setSoundtrackNeedsGesture(true);
     }
     setSoundtrackStarted(true);
   };
@@ -119,6 +154,7 @@ export default function LittleUniverse() {
   const startSilently = () => {
     setSoundtrackStarted(true);
     setSoundtrackMuted(true);
+    setSoundtrackNeedsGesture(false);
   };
 
   const toggleSoundtrack = async () => {
@@ -130,8 +166,9 @@ export default function LittleUniverse() {
         await player.play();
         setSoundtrackMuted(false);
         setSoundtrackUnavailable(false);
+        setSoundtrackNeedsGesture(false);
       } catch {
-        setSoundtrackUnavailable(true);
+        setSoundtrackNeedsGesture(true);
       }
       return;
     }
@@ -141,7 +178,27 @@ export default function LittleUniverse() {
 
   const pauseForPerformance = () => {
     soundtrackRef.current?.pause();
+    setSoundtrackStarted(false);
     setPerformancePlaying(true);
+  };
+
+  const returnToEntrance = () => {
+    const player = soundtrackRef.current;
+    if (player) {
+      player.pause();
+      player.currentTime = 0;
+      player.muted = false;
+    }
+    setPerformancePlaying(false);
+    setSoundtrackStarted(false);
+    setSoundtrackMuted(false);
+    setSoundtrackUnavailable(false);
+    setSoundtrackNeedsGesture(false);
+    window.localStorage.removeItem("little-universe-unlocked");
+    window.localStorage.removeItem("little-universe-intro-seen");
+    window.localStorage.removeItem("little-universe-flyer-seen");
+    setExperienceStage("login");
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const screens = [
@@ -187,6 +244,7 @@ export default function LittleUniverse() {
             keepsakeCount={collectedKeepsakes.length}
             onNavigate={goTo}
             onBack={() => goTo(Math.max(chapter - 1, 0))}
+            onReturnToEntrance={returnToEntrance}
           />
         )}
         <MusicControl />
@@ -220,17 +278,32 @@ export default function LittleUniverse() {
 
   return (
     <>
-      <audio ref={soundtrackRef} src={config.birthdayEntrance.soundtrack} preload="metadata" loop />
+      <audio
+        ref={soundtrackRef}
+        src={config.birthdayEntrance.soundtrack}
+        preload="auto"
+        loop
+        onPlay={() => setSoundtrackNeedsGesture(false)}
+        onError={() => setSoundtrackUnavailable(true)}
+      />
       {stageContent}
       {soundtrackStarted && !performancePlaying && (
         <button
           className="persistent-soundtrack"
           onClick={() => void toggleSoundtrack()}
           disabled={soundtrackUnavailable}
-          aria-label={soundtrackMuted ? "Play our song" : "Mute our song"}
+          aria-label={soundtrackMuted || soundtrackNeedsGesture ? "Play our song" : "Mute our song"}
         >
           {soundtrackMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          <span>{soundtrackUnavailable ? "Music unavailable" : soundtrackMuted ? "Play our song" : "Our song is playing"}</span>
+          <span>
+            {soundtrackUnavailable
+              ? "Music unavailable"
+              : soundtrackNeedsGesture
+                ? "Tap to resume our song"
+                : soundtrackMuted
+                  ? "Play our song"
+                  : "Our song is playing"}
+          </span>
         </button>
       )}
     </>

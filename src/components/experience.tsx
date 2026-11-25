@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ArrowLeft, ChevronRight, Heart, Image as ImageIcon, Music2, Pause } from "lucide-react";
+import { ArrowLeft, ChevronRight, Heart, Image as ImageIcon, LogOut, Music2, Pause } from "lucide-react";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { pookieConfig as config } from "../data/pookie";
 
@@ -69,12 +69,14 @@ export function ChapterHeader({
   keepsakeCount,
   onNavigate,
   onBack,
+  onReturnToEntrance,
 }: {
   chapter: number;
   maxChapter: number;
   keepsakeCount: number;
   onNavigate: (value: number) => void;
   onBack: () => void;
+  onReturnToEntrance: () => void;
 }) {
   const dark = chapter >= 4;
   return (
@@ -101,9 +103,19 @@ export function ChapterHeader({
         </div>
         <p>Chapter {chapter + 1} of {chapters.length} · {chapters[chapter]}</p>
       </div>
-      <div className="header-keepsakes" aria-label={`${keepsakeCount} keepsakes collected`}>
-        <Heart size={16} fill="currentColor" aria-hidden="true" />
-        <span>{keepsakeCount}</span>
+      <div className="header-actions">
+        <div className="header-keepsakes" aria-label={`${keepsakeCount} keepsakes collected`}>
+          <Heart size={16} fill="currentColor" aria-hidden="true" />
+          <span>{keepsakeCount}</span>
+        </div>
+        <button
+          className="header-entrance-button"
+          onClick={onReturnToEntrance}
+          aria-label="Return to the secret entrance"
+          title="Experience the entrance again"
+        >
+          <LogOut size={16} aria-hidden="true" />
+        </button>
       </div>
     </motion.header>
   );
